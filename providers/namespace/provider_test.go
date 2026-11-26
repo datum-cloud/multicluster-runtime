@@ -94,7 +94,7 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 							}
 							return reconcile.Result{}, fmt.Errorf("failed to get configmap: %w", err)
 						}
-						if cm.GetLabels()["type"] != "animal" {
+						if cm.GetLabels()[constType] != constAnimal {
 							return reconcile.Result{}, nil
 						}
 
@@ -109,8 +109,8 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Adding an index to the provider clusters", func() {
-				err := mgr.GetFieldIndexer().IndexField(ctx, &corev1.ConfigMap{}, "type", func(obj client.Object) []string {
-					return []string{obj.GetLabels()["type"]}
+				err := mgr.GetFieldIndexer().IndexField(ctx, &corev1.ConfigMap{}, constType, func(obj client.Object) []string {
+					return []string{obj.GetLabels()[constType]}
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -127,26 +127,26 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 	})
 
 	BeforeAll(func() {
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "zoo"}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "zoo", Name: "elephant", Labels: map[string]string{"type": "animal"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "zoo", Name: "lion", Labels: map[string]string{"type": "animal"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "zoo", Name: "keeper", Labels: map[string]string{"type": "human"}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: constZoo}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constZoo, Name: constElephant, Labels: map[string]string{constType: constAnimal}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constZoo, Name: "lion", Labels: map[string]string{constType: constAnimal}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constZoo, Name: "keeper", Labels: map[string]string{constType: constHuman}}})))
 
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "jungle"}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "monkey", Labels: map[string]string{"type": "animal"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "tree", Labels: map[string]string{"type": "thing"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "tarzan", Labels: map[string]string{"type": "human"}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: constJungle}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "monkey", Labels: map[string]string{constType: constAnimal}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "tree", Labels: map[string]string{constType: "thing"}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "tarzan", Labels: map[string]string{constType: constHuman}}})))
 
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "island"}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "island", Name: "bird", Labels: map[string]string{"type": "animal"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "island", Name: "stone", Labels: map[string]string{"type": "thing"}}})))
-		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "island", Name: "crusoe", Labels: map[string]string{"type": "human"}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: constIsland}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constIsland, Name: "bird", Labels: map[string]string{constType: constAnimal}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constIsland, Name: "stone", Labels: map[string]string{constType: "thing"}}})))
+		runtime.Must(client.IgnoreAlreadyExists(cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constIsland, Name: "crusoe", Labels: map[string]string{constType: constHuman}}})))
 	})
 
 	It("runs the reconciler for existing objects", func(ctx context.Context) {
 		Eventually(func() string {
 			lion := &corev1.ConfigMap{}
-			err := cli.Get(ctx, client.ObjectKey{Namespace: "zoo", Name: "lion"}, lion)
+			err := cli.Get(ctx, client.ObjectKey{Namespace: constZoo, Name: "lion"}, lion)
 			Expect(err).NotTo(HaveOccurred())
 			return lion.Data["stomach"]
 		}, "10s").Should(Equal("food"))
@@ -154,13 +154,13 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 
 	It("runs the reconciler for new objects", func(ctx context.Context) {
 		By("Creating a new configmap", func() {
-			err := cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "zoo", Name: "tiger", Labels: map[string]string{"type": "animal"}}})
+			err := cli.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constZoo, Name: "tiger", Labels: map[string]string{constType: constAnimal}}})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Eventually(func() string {
 			tiger := &corev1.ConfigMap{}
-			err := cli.Get(ctx, client.ObjectKey{Namespace: "zoo", Name: "tiger"}, tiger)
+			err := cli.Get(ctx, client.ObjectKey{Namespace: constZoo, Name: "tiger"}, tiger)
 			Expect(err).NotTo(HaveOccurred())
 			return tiger.Data["stomach"]
 		}, "10s").Should(Equal("food"))
@@ -170,7 +170,7 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 		updated := &corev1.ConfigMap{}
 		By("Emptying the elephant's stomach", func() {
 			err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-				if err := cli.Get(ctx, client.ObjectKey{Namespace: "zoo", Name: "elephant"}, updated); err != nil {
+				if err := cli.Get(ctx, client.ObjectKey{Namespace: constZoo, Name: constElephant}, updated); err != nil {
 					return err
 				}
 				updated.Data = map[string]string{}
@@ -183,7 +183,7 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 
 		Eventually(func() int64 {
 			elephant := &corev1.ConfigMap{}
-			err := cli.Get(ctx, client.ObjectKey{Namespace: "zoo", Name: "elephant"}, elephant)
+			err := cli.Get(ctx, client.ObjectKey{Namespace: constZoo, Name: constElephant}, elephant)
 			Expect(err).NotTo(HaveOccurred())
 			rv, err := strconv.ParseInt(elephant.ResourceVersion, 10, 64)
 			Expect(err).NotTo(HaveOccurred())
@@ -192,18 +192,18 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 
 		Eventually(func() string {
 			elephant := &corev1.ConfigMap{}
-			err := cli.Get(ctx, client.ObjectKey{Namespace: "zoo", Name: "elephant"}, elephant)
+			err := cli.Get(ctx, client.ObjectKey{Namespace: constZoo, Name: constElephant}, elephant)
 			Expect(err).NotTo(HaveOccurred())
 			return elephant.Data["stomach"]
 		}, "10s").Should(Equal("food"))
 	})
 
 	It("queries one cluster via a multi-cluster index", func() {
-		island, err := mgr.GetCluster(ctx, "island")
+		island, err := mgr.GetCluster(ctx, constIsland)
 		Expect(err).NotTo(HaveOccurred())
 
 		cms := &corev1.ConfigMapList{}
-		err = island.GetCache().List(ctx, cms, client.MatchingFields{"type": "human"})
+		err = island.GetCache().List(ctx, cms, client.MatchingFields{constType: constHuman})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cms.Items).To(HaveLen(1))
 		Expect(cms.Items[0].Name).To(Equal("crusoe"))
@@ -211,11 +211,11 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 	})
 
 	It("queries one cluster via a multi-cluster index with a namespace", func() {
-		island, err := mgr.GetCluster(ctx, "island")
+		island, err := mgr.GetCluster(ctx, constIsland)
 		Expect(err).NotTo(HaveOccurred())
 
 		cms := &corev1.ConfigMapList{}
-		err = island.GetCache().List(ctx, cms, client.InNamespace("default"), client.MatchingFields{"type": "human"})
+		err = island.GetCache().List(ctx, cms, client.InNamespace("default"), client.MatchingFields{constType: constHuman})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cms.Items).To(HaveLen(1))
 		Expect(cms.Items[0].Name).To(Equal("crusoe"))
@@ -224,7 +224,7 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 
 	It("queries all clusters via a multi-cluster index", func() {
 		cms := &corev1.ConfigMapList{}
-		err := cl.GetCache().List(ctx, cms, client.MatchingFields{"type": "human"})
+		err := cl.GetCache().List(ctx, cms, client.MatchingFields{constType: constHuman})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cms.Items).To(HaveLen(3))
 		names := sets.NewString()
@@ -236,11 +236,11 @@ var _ = Describe("Provider Namespace", Ordered, func() {
 
 	It("queries all clusters via a multi-cluster index with a namespace", func() {
 		cms := &corev1.ConfigMapList{}
-		err := cl.GetCache().List(ctx, cms, client.InNamespace("island"), client.MatchingFields{"type": "human"})
+		err := cl.GetCache().List(ctx, cms, client.InNamespace(constIsland), client.MatchingFields{constType: constHuman})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cms.Items).To(HaveLen(1))
 		Expect(cms.Items[0].Name).To(Equal("crusoe"))
-		Expect(cms.Items[0].Namespace).To(Equal("island"))
+		Expect(cms.Items[0].Namespace).To(Equal(constIsland))
 	})
 
 	AfterAll(func() {

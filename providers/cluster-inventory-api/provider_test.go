@@ -146,7 +146,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 						}
 						return reconcile.Result{}, fmt.Errorf("failed to get configmap: %w", err)
 					}
-					if cm.GetLabels()["type"] != "animal" {
+					if cm.GetLabels()[constType] != constAnimal {
 						return reconcile.Result{}, nil
 					}
 
@@ -160,8 +160,8 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Adding an index to the provider clusters", func() {
-				err := mgr.GetFieldIndexer().IndexField(ctx, &corev1.ConfigMap{}, "type", func(obj client.Object) []string {
-					return []string{obj.GetLabels()["type"]}
+				err := mgr.GetFieldIndexer().IndexField(ctx, &corev1.ConfigMap{}, constType, func(obj client.Object) []string {
+					return []string{obj.GetLabels()[constType]}
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -177,16 +177,16 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 	createObjects := func() {
 		By("Creating the namespace and configmaps", func() {
 			Expect(
-				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "jungle"}})),
+				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: constJungle}})),
 			).To(Succeed())
 			Expect(
-				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "monkey", Labels: map[string]string{"type": "animal"}}})),
+				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "monkey", Labels: map[string]string{constType: constAnimal}}})),
 			).To(Succeed())
 			Expect(
-				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "tree", Labels: map[string]string{"type": "thing"}}})),
+				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "tree", Labels: map[string]string{constType: "thing"}}})),
 			).To(Succeed())
 			Expect(
-				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "tarzan", Labels: map[string]string{"type": "human"}}})),
+				client.IgnoreAlreadyExists(cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: "tarzan", Labels: map[string]string{constType: constHuman}}})),
 			).To(Succeed())
 		})
 	}
@@ -194,7 +194,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 		It("runs the reconciler for existing objects", func(ctx context.Context) {
 			Eventually(func() string {
 				monkey := &corev1.ConfigMap{}
-				err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "monkey"}, monkey)
+				err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: "monkey"}, monkey)
 				Expect(err).NotTo(HaveOccurred())
 				return monkey.Data["stomach"]
 			}, "10s").Should(Equal("food"))
@@ -202,13 +202,13 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 
 		It("runs the reconciler for new objects", func(ctx context.Context) {
 			By("Creating a new configmap", func() {
-				err := cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: "jungle", Name: "gorilla", Labels: map[string]string{"type": "animal"}}})
+				err := cliMember.Create(ctx, &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Namespace: constJungle, Name: constGorilla, Labels: map[string]string{constType: constAnimal}}})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			Eventually(func() string {
 				gorilla := &corev1.ConfigMap{}
-				err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "gorilla"}, gorilla)
+				err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: constGorilla}, gorilla)
 				Expect(err).NotTo(HaveOccurred())
 				return gorilla.Data["stomach"]
 			}, "10s").Should(Equal("food"))
@@ -218,7 +218,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 			updated := &corev1.ConfigMap{}
 			By("Emptying the gorilla's stomach", func() {
 				err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-					if err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "gorilla"}, updated); err != nil {
+					if err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: constGorilla}, updated); err != nil {
 						return err
 					}
 					updated.Data = map[string]string{}
@@ -231,7 +231,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 
 			Eventually(func() int64 {
 				gorilla := &corev1.ConfigMap{}
-				err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "gorilla"}, gorilla)
+				err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: constGorilla}, gorilla)
 				Expect(err).NotTo(HaveOccurred())
 				rv, err := strconv.ParseInt(gorilla.ResourceVersion, 10, 64)
 				Expect(err).NotTo(HaveOccurred())
@@ -240,7 +240,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 
 			Eventually(func() string {
 				gorilla := &corev1.ConfigMap{}
-				err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "gorilla"}, gorilla)
+				err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: constGorilla}, gorilla)
 				Expect(err).NotTo(HaveOccurred())
 				return gorilla.Data["stomach"]
 			}, "10s").Should(Equal("food"))
@@ -252,22 +252,22 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cms := &corev1.ConfigMapList{}
-			err = cl.GetCache().List(ctx, cms, client.MatchingFields{"type": "human"})
+			err = cl.GetCache().List(ctx, cms, client.MatchingFields{constType: constHuman})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cms.Items).To(HaveLen(1))
 			Expect(cms.Items[0].Name).To(Equal("tarzan"))
-			Expect(cms.Items[0].Namespace).To(Equal("jungle"))
+			Expect(cms.Items[0].Namespace).To(Equal(constJungle))
 		})
 
 		It("queries all clusters via a multi-cluster index with a namespace", func() {
 			cl, err := mgr.GetCluster(ctx, "default/member")
 			Expect(err).NotTo(HaveOccurred())
 			cms := &corev1.ConfigMapList{}
-			err = cl.GetCache().List(ctx, cms, client.InNamespace("jungle"), client.MatchingFields{"type": "human"})
+			err = cl.GetCache().List(ctx, cms, client.InNamespace(constJungle), client.MatchingFields{constType: constHuman})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cms.Items).To(HaveLen(1))
 			Expect(cms.Items[0].Name).To(Equal("tarzan"))
-			Expect(cms.Items[0].Namespace).To(Equal("jungle"))
+			Expect(cms.Items[0].Namespace).To(Equal(constJungle))
 		})
 	}
 
@@ -300,13 +300,13 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 			By("Setting up the ClusterProfile for member clusters", func() {
 				profileMember = &clusterinventoryv1alpha1.ClusterProfile{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "member",
-						Namespace: "default",
+						Name:      constMember,
+						Namespace: constDefault,
 					},
 					Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
-						DisplayName: "member",
+						DisplayName: constMember,
 						ClusterManager: clusterinventoryv1alpha1.ClusterManager{
-							Name: "test",
+							Name: constTest,
 						},
 					},
 				}
@@ -321,7 +321,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 				})
 				Expect(cliHub.Status().Update(ctx, profileMember)).To(Succeed())
 
-				sa1TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa1", "default")
+				sa1TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa1", constDefault)
 				mustCreateOrUpdateKubeConfigSecretFromTokenSecret(
 					ctx, cliHub, cfgMember,
 					consumerName,
@@ -338,7 +338,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 
 		It("re-engages the cluster when kubeconfig of the cluster profile changes", func(ctx context.Context) {
 			By("Update the kubeconfig for the member ClusterProfile", func() {
-				sa2TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa2", "default")
+				sa2TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa2", constDefault)
 				mustCreateOrUpdateKubeConfigSecretFromTokenSecret(
 					ctx, cliHub, cfgMember,
 					consumerName,
@@ -351,14 +351,14 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 				time.Sleep(2 * time.Second) // Give some time for the reconciler to pick up the new kubeconfig
 				jaguar := &corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "jungle",
+						Namespace: constJungle,
 						Name:      "jaguar",
-						Labels:    map[string]string{"type": "animal"},
+						Labels:    map[string]string{constType: constAnimal},
 					},
 				}
 				Expect(cliMember.Create(ctx, jaguar)).NotTo(HaveOccurred())
 				Eventually(func(g Gomega) string {
-					err := cliMember.Get(ctx, client.ObjectKey{Namespace: "jungle", Name: "jaguar"}, jaguar)
+					err := cliMember.Get(ctx, client.ObjectKey{Namespace: constJungle, Name: "jaguar"}, jaguar)
 					g.Expect(err).NotTo(HaveOccurred())
 					return jaguar.Data["stomach"]
 				}, "10s").Should(Equal("food"))
@@ -378,7 +378,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 	})
 
 	Context("With access-provider-based kubeconfig strategy", Ordered, func() {
-		accessProviderName := "test"
+		accessProviderName := constTest
 
 		type accessProviderTestCase struct {
 			option                  func(*access.Config) kubeconfigstrategy.Option
@@ -394,7 +394,7 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 					createClusters()
 
 					By("Setting up the Provider", func() {
-						sa1TokenMember := mustCreateAdminSAAndToken(ctx, cliMember, "sa1", "default")
+						sa1TokenMember := mustCreateAdminSAAndToken(ctx, cliMember, "sa1", constDefault)
 						execPluginOutput := fmt.Sprintf(`{
 							"apiVersion": "%s",
 							"kind": "ExecCredential",
@@ -425,13 +425,13 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 					By("Setting up the ClusterProfile for member clusters", func() {
 						profileMember = &clusterinventoryv1alpha1.ClusterProfile{
 							ObjectMeta: metav1.ObjectMeta{
-								Name:      "member",
-								Namespace: "default",
+								Name:      constMember,
+								Namespace: constDefault,
 							},
 							Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
-								DisplayName: "member",
+								DisplayName: constMember,
 								ClusterManager: clusterinventoryv1alpha1.ClusterManager{
-									Name: "test",
+									Name: constTest,
 								},
 							},
 						}
@@ -532,19 +532,19 @@ var _ = Describe("Provider Cluster Inventory API", Ordered, func() {
 			By("Setting up the ClusterProfile for member clusters", func() {
 				profileMember = &clusterinventoryv1alpha1.ClusterProfile{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "member",
-						Namespace: "default",
+						Name:      constMember,
+						Namespace: constDefault,
 					},
 					Spec: clusterinventoryv1alpha1.ClusterProfileSpec{
-						DisplayName: "member",
+						DisplayName: constMember,
 						ClusterManager: clusterinventoryv1alpha1.ClusterManager{
-							Name: "test",
+							Name: constTest,
 						},
 					},
 				}
 				Expect(cliHub.Create(ctx, profileMember)).To(Succeed())
 
-				sa1TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa1", "default")
+				sa1TokenMember = mustCreateAdminSAAndToken(ctx, cliMember, "sa1", constDefault)
 				mustCreateOrUpdateKubeConfigSecretFromTokenSecret(
 					ctx, cliHub, cfgMember,
 					consumerName,
@@ -650,7 +650,7 @@ users:
 	kubeConfigSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-kubeconfig", clusterProfile.Name),
-			Namespace: "default",
+			Namespace: constDefault,
 		},
 	}
 

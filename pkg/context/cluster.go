@@ -15,8 +15,6 @@ limitations under the License.
 */
 
 // Package context provides utilities for working with cluster context.
-//
-//nolint:revive // Package name intentionally shadows standard library for domain clarity
 package context
 
 import (

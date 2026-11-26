@@ -1,6 +1,6 @@
 # examples/sharded-namespace/Dockerfile
 # Multi-stage to keep image slim
-FROM golang:1.24 as build
+FROM golang:1.27.4 as build
 
 WORKDIR /src
 # Copy go.mod/sum from repo root so deps resolve; adjust paths if needed.

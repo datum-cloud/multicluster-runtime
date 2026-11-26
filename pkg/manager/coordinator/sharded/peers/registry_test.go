@@ -73,7 +73,7 @@ func TestRenewSelfLease_CreateThenUpdate(t *testing.T) {
 	if ls.Spec.HolderIdentity == nil || *ls.Spec.HolderIdentity != selfID {
 		t.Fatalf("holder = %v, want %q", ls.Spec.HolderIdentity, selfID)
 	}
-	if got := ls.Labels[labelPeer]; got != "true" {
+	if got := ls.Labels[labelPeer]; got != constTrue {
 		t.Fatalf("label %s = %q, want true", labelPeer, got)
 	}
 	if got := ls.Labels[labelPrefix]; got != prefix {
@@ -113,7 +113,7 @@ func TestRefreshPeers_FiltersAndParses(t *testing.T) {
 			Namespace: testNS, Name: prefix + "-" + otherID,
 			Labels: map[string]string{
 				labelPartOf: partOfValue,
-				labelPeer:   "true",
+				labelPeer:   constTrue,
 				labelPrefix: prefix,
 			},
 			Annotations: map[string]string{
@@ -132,7 +132,7 @@ func TestRefreshPeers_FiltersAndParses(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: testNS, Name: prefix + "-expired",
 			Labels: map[string]string{
-				labelPeer:   "true",
+				labelPeer:   constTrue,
 				labelPrefix: prefix,
 			},
 		},
@@ -148,7 +148,7 @@ func TestRefreshPeers_FiltersAndParses(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: testNS, Name: "otherprefix-" + "x",
 			Labels: map[string]string{
-				labelPeer:   "true",
+				labelPeer:   constTrue,
 				labelPrefix: "otherprefix",
 			},
 		},
