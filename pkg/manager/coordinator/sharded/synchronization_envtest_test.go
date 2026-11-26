@@ -54,9 +54,9 @@ var _ = Describe("Sharded coordinator envtest (namespace provider)", func() {
 		// Ensure kube-system exists for fencing leases
 		{
 			var ks corev1.Namespace
-			err := directCli.Get(ctx, client.ObjectKey{Name: "kube-system"}, &ks)
+			err := directCli.Get(ctx, client.ObjectKey{Name: constKubeSystem}, &ks)
 			if apierrors.IsNotFound(err) {
-				Expect(directCli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kube-system"}})).To(Succeed())
+				Expect(directCli.Create(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: constKubeSystem}})).To(Succeed())
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 			}
@@ -77,7 +77,7 @@ var _ = Describe("Sharded coordinator envtest (namespace provider)", func() {
 		m, err := mcmanager.New(cfg, prov, manager.Options{},
 			mcmanager.WithCoordinator(
 				sharded.New(directCli, logr.Discard(),
-					sharded.WithShardLease("kube-system", "mcr-shard"),
+					sharded.WithShardLease(constKubeSystem, "mcr-shard"),
 					sharded.WithPerClusterLease(true),
 					sharded.WithLeaseTimings(6*time.Second, 2*time.Second, 100*time.Millisecond),
 					sharded.WithSynchronizationIntervals(200*time.Millisecond, 1*time.Second),
@@ -101,7 +101,7 @@ var _ = Describe("Sharded coordinator envtest (namespace provider)", func() {
 		Eventually(func(g Gomega) {
 			for _, n := range nsNames {
 				var ls coordinationv1.Lease
-				key := client.ObjectKey{Namespace: "kube-system", Name: fmt.Sprintf("mcr-shard-%s", n)}
+				key := client.ObjectKey{Namespace: constKubeSystem, Name: fmt.Sprintf("mcr-shard-%s", n)}
 				g.Expect(directCli.Get(ctx, key, &ls)).To(Succeed())
 				g.Expect(ls.Spec.HolderIdentity).NotTo(BeNil())
 				g.Expect(*ls.Spec.HolderIdentity).NotTo(BeEmpty())

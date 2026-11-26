@@ -572,23 +572,23 @@ var _ = Describe("application", func() {
 			By("Creating a new stateful set")
 			set := &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{
-					Namespace: "default",
+					Namespace: constDefault,
 					Name:      "test1",
 					Labels: map[string]string{
-						"foo": "bar",
+						constFoo: constBar,
 					},
 				},
 				Spec: appsv1.StatefulSetSpec{
 					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{"foo": "bar"},
+						MatchLabels: map[string]string{constFoo: constBar},
 					},
 					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"foo": "bar"}},
+						ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{constFoo: constBar}},
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
 								{
-									Name:  "nginx",
-									Image: "nginx",
+									Name:  constNginx,
+									Image: constNginx,
 								},
 							},
 						},
@@ -650,20 +650,20 @@ var _ = Describe("application", func() {
 			By("Creating a Deployment", func() {
 				dep := &appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "default",
+						Namespace: constDefault,
 						Name:      "deploy-name-local",
 					},
 					Spec: appsv1.DeploymentSpec{
 						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{"foo": "bar"},
+							MatchLabels: map[string]string{constFoo: constBar},
 						},
 						Template: corev1.PodTemplateSpec{
-							ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"foo": "bar"}},
+							ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{constFoo: constBar}},
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{
 									{
-										Name:  "nginx",
-										Image: "nginx",
+										Name:  constNginx,
+										Image: constNginx,
 									},
 								},
 							},
@@ -714,20 +714,20 @@ var _ = Describe("application", func() {
 			By("Creating a Deployment", func() {
 				dep := &appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "default",
+						Namespace: constDefault,
 						Name:      "deploy-name-non-local",
 					},
 					Spec: appsv1.DeploymentSpec{
 						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{"foo": "bar"},
+							MatchLabels: map[string]string{constFoo: constBar},
 						},
 						Template: corev1.PodTemplateSpec{
-							ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"foo": "bar"}},
+							ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{constFoo: constBar}},
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{
 									{
-										Name:  "nginx",
-										Image: "nginx",
+										Name:  constNginx,
+										Image: constNginx,
 									},
 								},
 							},
@@ -830,20 +830,20 @@ func doReconcileTest(ctx context.Context, nameSuffix string, mgr mcmanager.Manag
 	// Expect a Reconcile when the Deployment is managedObjects.
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "default",
+			Namespace: constDefault,
 			Name:      deployName,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"foo": "bar"},
+				MatchLabels: map[string]string{constFoo: constBar},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"foo": "bar"}},
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{constFoo: constBar}},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "nginx",
-							Image: "nginx",
+							Name:  constNginx,
+							Image: constNginx,
 						},
 					},
 				},
@@ -855,13 +855,13 @@ func doReconcileTest(ctx context.Context, nameSuffix string, mgr mcmanager.Manag
 
 	By("Waiting for the Deployment Reconcile")
 	Eventually(ch).Should(Receive(Equal(mcreconcile.Request{Request: reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: "default", Name: deployName}}})))
+		NamespacedName: types.NamespacedName{Namespace: constDefault, Name: deployName}}})))
 
 	By("Creating a ReplicaSet")
 	// Expect a Reconcile when an Owned object is managedObjects.
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "default",
+			Namespace: constDefault,
 			Name:      rsName,
 			Labels:    dep.Spec.Selector.MatchLabels,
 			OwnerReferences: []metav1.OwnerReference{
@@ -884,7 +884,7 @@ func doReconcileTest(ctx context.Context, nameSuffix string, mgr mcmanager.Manag
 
 	By("Waiting for the ReplicaSet Reconcile")
 	Eventually(ch).Should(Receive(Equal(mcreconcile.Request{Request: reconcile.Request{
-		NamespacedName: types.NamespacedName{Namespace: "default", Name: deployName}}})))
+		NamespacedName: types.NamespacedName{Namespace: constDefault, Name: deployName}}})))
 }
 
 var _ runtime.Object = &fakeType{}

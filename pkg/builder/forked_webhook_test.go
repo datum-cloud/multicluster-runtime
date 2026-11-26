@@ -944,7 +944,7 @@ type TestDefaulterObject struct {
 	Panic   bool `json:"panic,omitempty"`
 }
 
-var testDefaulterGVK = schema.GroupVersionKind{Group: "foo.test.org", Version: "v1", Kind: testDefaulterKind}
+var testDefaulterGVK = schema.GroupVersionKind{Group: constFooTestOrg, Version: "v1", Kind: testDefaulterKind}
 
 func addToScheme(scheme *runtime.Scheme) {
 	scheme.AddKnownTypes(testDefaulterGVK.GroupVersion(),
@@ -988,7 +988,7 @@ type TestValidatorObject struct {
 	Panic   bool `json:"panic,omitempty"`
 }
 
-var testValidatorGVK = schema.GroupVersionKind{Group: "foo.test.org", Version: "v1", Kind: testValidatorKind}
+var testValidatorGVK = schema.GroupVersionKind{Group: constFooTestOrg, Version: "v1", Kind: testValidatorKind}
 
 func (v *TestValidatorObject) GetObjectKind() schema.ObjectKind { return v }
 func (v *TestValidatorObject) DeepCopyObject() runtime.Object {
@@ -1022,7 +1022,7 @@ type TestDefaultValidator struct {
 	Replica int `json:"replica,omitempty"`
 }
 
-var testDefaultValidatorGVK = schema.GroupVersionKind{Group: "foo.test.org", Version: "v1", Kind: "TestDefaultValidator"}
+var testDefaultValidatorGVK = schema.GroupVersionKind{Group: constFooTestOrg, Version: "v1", Kind: "TestDefaultValidator"}
 
 func (dv *TestDefaultValidator) GetObjectKind() schema.ObjectKind { return dv }
 func (dv *TestDefaultValidator) DeepCopyObject() runtime.Object {
